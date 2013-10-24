@@ -16,16 +16,26 @@ public class AdminBook {
         this.con = con;
     }
 
+    //Book code
     public boolean addBook(Book book){
-        String sql = "insert into book values(?,?,?,?,?,?)";
+        String sql = "insert into book(id_book_catalogue,name,author1,"
+                + "author2,author3,isbn,state) values(?,?,?,?,?,?,?)";
         try{
+            int id_bc;
+            if(this.getIdBookCatalogue(book.getBookCatalogue()) == 0){
+                this.addBookCatalogue(book.getBookCatalogue());
+            }
+            
+            id_bc = this.getIdBookCatalogue(book.getBookCatalogue());
+            
             PreparedStatement ps = con.prepareStatement(sql);
-            ps.setString(1, book.getName());
-            ps.setString(2, book.getAuthor1());
-            ps.setString(3, book.getAuthor2());
-            ps.setString(4, book.getAuthor3());
-            ps.setString(5, book.getISBN());
-            ps.setString(6, book.getState());
+            ps.setInt(1, id_bc);
+            ps.setString(2, book.getName());
+            ps.setString(3, book.getAuthor1());
+            ps.setString(4, book.getAuthor2());
+            ps.setString(5, book.getAuthor3());
+            ps.setString(6, book.getISBN());
+            ps.setString(7, book.getState());
             
             ps.executeUpdate();
             return true;
@@ -97,6 +107,83 @@ public class AdminBook {
             
             ResultSet rs = ps.executeQuery();
             
+            if(rs.next())
+                return rs.getInt("id");
+            else
+                return 0;
+        }
+        catch(SQLException ex){
+            System.err.println(ex.getMessage());
+            return 0;
+        }
+    }
+    
+    //BookCatalogue code 
+    public boolean addBookCatalogue(BookCatalogue bc){
+        String sql = "insert into book_catalogue values(?,?)";
+        try{
+            PreparedStatement ps = con.prepareStatement(sql);
+            
+            ps.setString(1, bc.getName());
+            ps.setString(2, bc.getDescription());
+            
+            ps.executeUpdate();
+            return true;
+        }
+        catch(SQLException ex){
+            System.err.println(ex.getMessage());
+            return false;
+        }
+    }
+    
+    public boolean modifyBookCatalogue(int id, BookCatalogue bc){
+        if(id != 0){
+            String sql = "update book_catalogue set name=?, description=? where id=?";
+            try{
+                PreparedStatement ps = con.prepareStatement(sql);
+                ps.setString(1, bc.getName());
+                ps.setString(2, bc.getDescription());                
+                ps.setInt(3, id);
+                
+                ps.executeUpdate();
+                return true;
+            }
+            catch(SQLException ex){
+                System.err.println(ex.getMessage());
+                return false;
+            }
+        }
+        else{
+            System.err.println("Invalid ID - Not found");
+            return false;
+        }
+    }
+    
+    public boolean deleteBookCatalogue(int id){
+        String sql = "delete from book_catalogue where id=?";
+        try{
+            PreparedStatement ps = con.prepareStatement(sql);
+            ps.setInt(1, id);
+            ps.executeUpdate();
+            return true;
+        }
+        catch(SQLException ex){
+            System.err.println(ex.getMessage());
+            return false;
+        }
+    }
+    
+    public int getIdBookCatalogue(BookCatalogue bc){
+        return this.getIdBookCatalogue(bc.getName(), bc.getDescription());
+    }
+    
+    private int getIdBookCatalogue(String name, String description){
+        String sql = "select id from book_catalogue where name=? and description=?";
+        try{
+            PreparedStatement ps = con.prepareStatement(sql);
+            ps.setString(1, name);
+            ps.setString(2, description);
+            ResultSet rs = ps.executeQuery();
             if(rs.next())
                 return rs.getInt("id");
             else
