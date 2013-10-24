@@ -74,4 +74,13 @@ public class DataBase {
     public Connection getConnection(){
         return this.con;
     }
+    
+    public void closeConnection(){
+        try{
+            this.con.close();
+        }
+        catch(SQLException ex){
+            System.err.println(ex.getMessage());
+        }
+    }
 }
